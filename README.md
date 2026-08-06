@@ -5,6 +5,8 @@ integration API: templates, print-forms, batch rendering, document drafts
 and webhook verification — with HMAC request signing (simple and strict
 canonical modes) built in and byte-compatible with the server implementation.
 
+> 🌐 **English** · [Deutsch](docs/de/README.md) · [Русский](docs/ru/README.md) · [中文](docs/zh/README.md)
+
 Java 17+. Single dependency: Jackson databind. **Server-side only** —
 the secret key must never reach untrusted environments.
 
