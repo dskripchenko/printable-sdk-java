@@ -81,7 +81,7 @@ public final class Canonical {
             keys.add(String.valueOf(key));
         }
 
-        // Ключи "0".."n" PHP считает списком.
+        // PHP treats the keys "0".."n" as a list.
         boolean sequential = true;
         for (int i = 0; i < keys.size(); i++) {
             if (!keys.get(i).equals(String.valueOf(i))) {
@@ -102,7 +102,7 @@ public final class Canonical {
             return;
         }
 
-        // PHP ksort: числовые ключи сравниваются как числа, прочие — как строки.
+        // PHP's ksort: the numeric keys are compared as numbers, the rest as strings.
         keys.sort(Comparator
                 .comparingInt((String k) -> isNumericString(k) ? 0 : 1)
                 .thenComparing(k -> isNumericString(k) ? "" : k)
@@ -144,7 +144,7 @@ public final class Canonical {
         if (number instanceof Double || number instanceof Float) {
             double d = number.doubleValue();
             if (d == Math.rint(d) && !Double.isInfinite(d) && Math.abs(d) < 1e15) {
-                // json.dumps(2.0) в Python — "2.0"; PHP float 2.0 — "2.0".
+                // json.dumps(2.0) in Python gives "2.0"; a PHP float 2.0 gives "2.0".
                 out.append((long) d).append(".0");
             } else {
                 out.append(d);

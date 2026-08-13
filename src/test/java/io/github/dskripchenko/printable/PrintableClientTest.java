@@ -68,7 +68,7 @@ class PrintableClientTest {
         });
         String hash = (String) body.remove("hash");
         body.remove("token");
-        // timestamp декодируется как Integer/Long — для канонизации эквивалентно.
+        // The timestamp decodes as an Integer/Long — equivalent for the canonicalization.
         Map<String, Object> signed = new LinkedHashMap<>(body);
         assertEquals(new Signer("salt-123").signPayload(signed, "sec-1"), hash);
     }
