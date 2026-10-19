@@ -119,4 +119,55 @@ class PrintableClientTest {
         assertTrue(client.verifyWebhook("{\"uuid\":\"abc\"}", "sha256=" + hex, "1753600000"));
         assertFalse(client.verifyWebhook("{\"uuid\":\"abc\"}", "sha256=deadbeef", "1753600000"));
     }
+
+    private static Map<String, Object> bodyOf(Captured request) throws Exception {
+        return MAPPER.readValue(request.body(), new TypeReference<>() {
+        });
+    }
+
+    @Test
+    void templateImportXlsxTakesGroupIdOrPath() throws Exception {
+        List<Captured> captured = new ArrayList<>();
+        PrintableClient client = makeClient(captured, false, 200, "{\"success\":true,\"payload\":{}}");
+        client.templateImportXlsx("UEsDBBQ=", 7, null);
+        client.templateImportXlsx("UEsDBBQ=", "Реестры / Отчёты", "Отчёт");
+
+        assertEquals("https://printable.test/api/integration/template/import-xlsx", captured.get(0).url());
+        Map<String, Object> first = bodyOf(captured.get(0));
+        assertEquals(7, ((Number) first.get("group_id")).intValue());
+        assertFalse(first.containsKey("group"));
+        assertFalse(first.containsKey("name"));
+        Map<String, Object> second = bodyOf(captured.get(1));
+        assertEquals("Реестры / Отчёты", second.get("group"));
+        assertFalse(second.containsKey("group_id"));
+        assertEquals("Отчёт", second.get("name"));
+    }
+
+    @Test
+    void signatureRequestSendsCertificateAndSlotWhenGiven() throws Exception {
+        List<Captured> captured = new ArrayList<>();
+        PrintableClient client = makeClient(captured, false, 200, "{\"success\":true,\"payload\":{}}");
+        client.printFormSignatureRequest("11111111-1111-1111-1111-111111111111", "MIIB", null);
+        client.printFormSignatureRequest("11111111-1111-1111-1111-111111111111", "MIIB", "counterparty");
+
+        assertEquals("POST", captured.get(0).method());
+        assertEquals("https://printable.test/api/integration/print-form/signature-request", captured.get(0).url());
+        Map<String, Object> first = bodyOf(captured.get(0));
+        assertEquals("MIIB", first.get("certificate"));
+        assertFalse(first.containsKey("slot"));
+        assertEquals("counterparty", bodyOf(captured.get(1)).get("slot"));
+    }
+
+    @Test
+    void signatureCompleteSendsCmsAndFormat() throws Exception {
+        List<Captured> captured = new ArrayList<>();
+        PrintableClient client = makeClient(captured, false, 200, "{\"success\":true,\"payload\":{}}");
+        client.printFormSignatureComplete("11111111-1111-1111-1111-111111111111", "MIAG", null, "b64");
+
+        assertEquals("https://printable.test/api/integration/print-form/signature-complete", captured.get(0).url());
+        Map<String, Object> body = bodyOf(captured.get(0));
+        assertEquals("MIAG", body.get("cms"));
+        assertEquals("b64", body.get("format"));
+        assertFalse(body.containsKey("slot"));
+    }
 }

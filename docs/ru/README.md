@@ -53,8 +53,9 @@ Map<String, Object> status = client.printFormBatchGet((String) batch.get("uuid")
 ## Поверхность API
 
 `templateList` · `templateContract` · `templateExport` · `templateImport` ·
-`templateImportDocx` · `printFormCreate` · `printFormGet` ·
-`printFormRules` · `printFormBatch` · `printFormBatchGet` ·
+`templateImportDocx` · `templateImportXlsx` · `printFormCreate` · `printFormGet` ·
+`printFormRules` · `printFormSignatureRequest` · `printFormSignatureComplete` ·
+`printFormBatch` · `printFormBatchGet` ·
 `documentDraftCreate` · `documentDraftGet` ·
 `call(method, endpoint, params)`
 
