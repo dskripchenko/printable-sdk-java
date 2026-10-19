@@ -98,6 +98,36 @@ public final class PrintableClient {
         return call("POST", "template/import-docx", params);
     }
 
+    /**
+     * Imports an Excel workbook (.xlsx) as a template draft into an existing
+     * group: one section per non-empty sheet, printed at the sheet's own print
+     * scale.
+     */
+    public Map<String, Object> templateImportXlsx(String xlsxB64, long groupId, String name) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("xlsx_b64", xlsxB64);
+        params.put("group_id", groupId);
+        if (name != null) {
+            params.put("name", name);
+        }
+        return call("POST", "template/import-xlsx", params);
+    }
+
+    /**
+     * Imports an Excel workbook (.xlsx) as a template draft into the group at
+     * a path ("Реестры / Отчёты"), which the service creates when it is
+     * missing.
+     */
+    public Map<String, Object> templateImportXlsx(String xlsxB64, String groupPath, String name) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("xlsx_b64", xlsxB64);
+        params.put("group", groupPath);
+        if (name != null) {
+            params.put("name", name);
+        }
+        return call("POST", "template/import-xlsx", params);
+    }
+
     // -- Print forms ----------------------------------------------------
 
     public Map<String, Object> printFormCreate(Map<String, ?> params) {
@@ -106,6 +136,41 @@ public final class PrintableClient {
 
     public Map<String, Object> printFormGet(String uuid) {
         return call("GET", "print-form/get", Map.of("uuid", uuid, "format", "link"));
+    }
+
+    /**
+     * Asks for the digest an external signer signs: for a document in
+     * {@code awaiting_signature}, with the signer's certificate (PEM, or DER
+     * in base64 as CryptoPro exports it). Sign the digest into a detached CMS
+     * and pass it to {@link #printFormSignatureComplete} before
+     * {@code expires_at}. A null {@code slot} means the signature field the
+     * document waits for.
+     */
+    public Map<String, Object> printFormSignatureRequest(String uuid, String certificate, String slot) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("uuid", uuid);
+        params.put("certificate", certificate);
+        if (slot != null) {
+            params.put("slot", slot);
+        }
+        return call("POST", "print-form/signature-request", params);
+    }
+
+    /**
+     * Hands in the external signature: the detached CMS (base64 or PEM). The
+     * answer is the document — {@code done} when every signature is in, else
+     * still {@code awaiting_signature} for the next signer. {@code format} is
+     * {@code link} or {@code b64}.
+     */
+    public Map<String, Object> printFormSignatureComplete(String uuid, String cms, String slot, String format) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("uuid", uuid);
+        params.put("cms", cms);
+        if (slot != null) {
+            params.put("slot", slot);
+        }
+        params.put("format", format != null ? format : "link");
+        return call("POST", "print-form/signature-complete", params);
     }
 
     public Map<String, Object> printFormRules(String template) {
