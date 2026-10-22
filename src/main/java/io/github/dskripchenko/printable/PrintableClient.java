@@ -173,6 +173,31 @@ public final class PrintableClient {
         return call("POST", "print-form/signature-complete", params);
     }
 
+    /**
+     * Invites the document's recipient to sign it themselves: the service
+     * issues a personal link to a signing page (CryptoPro browser plug-in, a
+     * detached .sig upload, or a PDF signed in its field). With a non-null
+     * {@code email} the service also sends the link by email. A null
+     * {@code slot} means the signature field the document waits for; null
+     * {@code email}/{@code name} are not sent. The answer carries
+     * {@code uuid}, {@code slot}, {@code sign_url}, {@code expires_at} and
+     * {@code sent}.
+     */
+    public Map<String, Object> printFormSignatureInvite(String uuid, String email, String slot, String name) {
+        Map<String, Object> params = new LinkedHashMap<>();
+        params.put("uuid", uuid);
+        if (slot != null) {
+            params.put("slot", slot);
+        }
+        if (email != null) {
+            params.put("email", email);
+        }
+        if (name != null) {
+            params.put("name", name);
+        }
+        return call("POST", "print-form/signature-invite", params);
+    }
+
     public Map<String, Object> printFormRules(String template) {
         return call("GET", "print-form/rules", Map.of("template", template));
     }
