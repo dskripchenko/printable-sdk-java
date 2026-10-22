@@ -55,6 +55,7 @@ Map<String, Object> status = client.printFormBatchGet((String) batch.get("uuid")
 `templateList` · `templateContract` · `templateExport` · `templateImport` ·
 `templateImportDocx` · `templateImportXlsx` · `printFormCreate` · `printFormGet` ·
 `printFormRules` · `printFormSignatureRequest` · `printFormSignatureComplete` ·
+`printFormSignatureInvite` ·
 `printFormBatch` · `printFormBatchGet` ·
 `documentDraftCreate` · `documentDraftGet` ·
 `call(method, endpoint, params)`
@@ -62,6 +63,37 @@ Map<String, Object> status = client.printFormBatchGet((String) batch.get("uuid")
 Каждый метод возвращает раскодированную карту `payload` из конверта ответа.
 Ошибки (не-2xx или `success: false`) бросают `PrintableException` с
 `getStatus()`, `getErrorKey()` и исходным `getPayload()`.
+
+## Подпись и защита
+
+`print-form/create` и `print-form/batch` принимают необязательные параметры — они передаются в params как есть:
+
+- `preset` — код пресета печати вместо `template` (его принимает и `document-draft/create`);
+- `signing` — профиль подписи для каждого поля, видимая или невидимая подпись, основание и `recipients` — контрагенты, которые подписывают документ сами;
+- `protection` — защита PDF: `{"generate": true}` — пароль сгенерирует сервис, либо свой пароль в поле `password`; необязательное `permissions` — `read_print`, `read_only` или `forms_sign`.
+
+В ответе тогда есть блок `protection` (`protected`, `permissions`, `password`, `owner_password`). **Пароли приходят только один раз** — в ответе, который выпускает документ; дальше они замаскированы (`••••••••`), так что сохраните их сразу. У каждого элемента `signature.slots[]` могут быть `method` (`cms`, `plugin`, `pdf` или `sig`) и `signature_link` — отделённая `.sig` получателя.
+
+```java
+Map<String, Object> doc = client.printFormCreate(Map.of(
+    "preset", "contract-signed",
+    "variables", Map.of("contract", Map.of("number", 15)),
+    "signing", Map.of(
+        "slots", Map.of("company", Map.of("profile", "ceo")),
+        "invisible", false,
+        "reason", "Contract 15",
+        "recipients", Map.of("buyer", Map.of("email", "buyer@example.com", "name", "Buyer LLC"))),
+    "protection", Map.of("generate", true, "permissions", "read_print")));
+// Пароль приходит только в этом ответе — сохраните его сейчас
+Object protection = doc.get("protection");
+
+// Передайте ссылку сами или дайте сервису отправить её письмом
+Map<String, Object> invite = client.printFormSignatureInvite(
+    (String) doc.get("uuid"), "buyer@example.com", "buyer", "Buyer LLC");
+System.out.println(invite.get("sign_url"));
+```
+
+`printFormSignatureInvite()` приглашает получателя подписать документ: возвращает `sign_url` — персональную ссылку на страницу подписи (плагин КриптоПро в браузере, загрузка отделённой `.sig` или PDF, подписанный в своём поле) — и `expires_at`. С адресом почты сервис ещё и отправит ссылку письмом (`sent`).
 
 ## Вебхуки
 

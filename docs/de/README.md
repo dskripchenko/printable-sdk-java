@@ -55,6 +55,7 @@ Map<String, Object> status = client.printFormBatchGet((String) batch.get("uuid")
 `templateList` · `templateContract` · `templateExport` · `templateImport` ·
 `templateImportDocx` · `templateImportXlsx` · `printFormCreate` · `printFormGet` ·
 `printFormRules` · `printFormSignatureRequest` · `printFormSignatureComplete` ·
+`printFormSignatureInvite` ·
 `printFormBatch` · `printFormBatchGet` ·
 `documentDraftCreate` · `documentDraftGet` ·
 `call(method, endpoint, params)`
@@ -62,6 +63,37 @@ Map<String, Object> status = client.printFormBatchGet((String) batch.get("uuid")
 Jede Methode gibt die dekodierte `payload`-Map aus dem Antwort-Umschlag zurück.
 Fehler (nicht-2xx oder `success: false`) werfen `PrintableException` mit
 `getStatus()`, `getErrorKey()` und dem rohen `getPayload()`.
+
+## Signatur und Schutz
+
+`print-form/create` und `print-form/batch` akzeptieren optionale Parameter, die unverändert in den params übergeben werden:
+
+- `preset` — der Code einer Druckvorgabe anstelle von `template` (auch `document-draft/create` akzeptiert ihn);
+- `signing` — ein Signaturprofil je Feld, eine sichtbare oder unsichtbare Signatur, der Grund und `recipients` — die Gegenparteien, die das Dokument selbst signieren;
+- `protection` — PDF-Schutz: `{"generate": true}` lässt den Dienst das Passwort erzeugen, alternativ ein eigenes im Feld `password`; das optionale `permissions` ist `read_print`, `read_only` oder `forms_sign`.
+
+Die Antwort enthält dann einen Block `protection` (`protected`, `permissions`, `password`, `owner_password`). **Passwörter werden nur einmal geliefert** — in der Antwort, die das Dokument ausstellt; danach kommen sie maskiert (`••••••••`), also sofort speichern. Jedes Element von `signature.slots[]` kann `method` (`cms`, `plugin`, `pdf` oder `sig`) und `signature_link` tragen — die abgetrennte `.sig` des Empfängers.
+
+```java
+Map<String, Object> doc = client.printFormCreate(Map.of(
+    "preset", "contract-signed",
+    "variables", Map.of("contract", Map.of("number", 15)),
+    "signing", Map.of(
+        "slots", Map.of("company", Map.of("profile", "ceo")),
+        "invisible", false,
+        "reason", "Contract 15",
+        "recipients", Map.of("buyer", Map.of("email", "buyer@example.com", "name", "Buyer LLC"))),
+    "protection", Map.of("generate", true, "permissions", "read_print")));
+// Das Passwort kommt nur in dieser Antwort — jetzt speichern
+Object protection = doc.get("protection");
+
+// Den Link selbst weitergeben oder vom Dienst per E-Mail senden lassen
+Map<String, Object> invite = client.printFormSignatureInvite(
+    (String) doc.get("uuid"), "buyer@example.com", "buyer", "Buyer LLC");
+System.out.println(invite.get("sign_url"));
+```
+
+`printFormSignatureInvite()` lädt den Empfänger zur Signatur ein: Es liefert `sign_url` — einen persönlichen Link zur Signaturseite (CryptoPro-Browser-Plug-in, Upload einer abgetrennten `.sig` oder ein im eigenen Feld signiertes PDF) — und `expires_at`. Mit einer E-Mail-Adresse verschickt der Dienst den Link auch per E-Mail (`sent`).
 
 ## Webhooks
 

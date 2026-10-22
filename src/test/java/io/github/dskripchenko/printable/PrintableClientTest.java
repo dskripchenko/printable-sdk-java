@@ -170,4 +170,24 @@ class PrintableClientTest {
         assertEquals("b64", body.get("format"));
         assertFalse(body.containsKey("slot"));
     }
+
+    @Test
+    void signatureInviteSendsEmailAndNameSkippingNulls() throws Exception {
+        List<Captured> captured = new ArrayList<>();
+        PrintableClient client = makeClient(captured, false, 200, "{\"success\":true,\"payload\":{}}");
+        client.printFormSignatureInvite("11111111-1111-1111-1111-111111111111", null, null, null);
+        client.printFormSignatureInvite("11111111-1111-1111-1111-111111111111", "buyer@example.com", "buyer", "Buyer LLC");
+
+        assertEquals("POST", captured.get(0).method());
+        assertEquals("https://printable.test/api/integration/print-form/signature-invite", captured.get(0).url());
+        Map<String, Object> first = bodyOf(captured.get(0));
+        assertEquals("11111111-1111-1111-1111-111111111111", first.get("uuid"));
+        assertFalse(first.containsKey("email"));
+        assertFalse(first.containsKey("slot"));
+        assertFalse(first.containsKey("name"));
+        Map<String, Object> second = bodyOf(captured.get(1));
+        assertEquals("buyer@example.com", second.get("email"));
+        assertEquals("buyer", second.get("slot"));
+        assertEquals("Buyer LLC", second.get("name"));
+    }
 }
