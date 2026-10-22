@@ -12,11 +12,11 @@ Java 17+。唯一依赖：Jackson databind。**仅限服务端**——密钥绝�
 
 ```kotlin
 // build.gradle.kts (after the artifact is published to Maven Central)
-implementation("io.github.dskripchenko:printable-sdk:1.0.0")
+implementation("io.github.dskripchenko:printable-sdk:1.1.0")
 ```
 
 在此之前——以源码或 jar 依赖的形式从本仓库引入（`gradle jar` 会生成
-`build/libs/printable-sdk-1.0.0.jar`）。
+`build/libs/printable-sdk-1.1.0.jar`）。
 
 ## 快速开始
 

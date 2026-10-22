@@ -15,11 +15,11 @@ Java 17+. Единственная зависимость — Jackson databind. 
 
 ```kotlin
 // build.gradle.kts (after the artifact is published to Maven Central)
-implementation("io.github.dskripchenko:printable-sdk:1.0.0")
+implementation("io.github.dskripchenko:printable-sdk:1.1.0")
 ```
 
 А пока — подключайте как зависимость исходниками или jar-файлом из этого
-репозитория (`gradle jar` кладёт `build/libs/printable-sdk-1.0.0.jar`).
+репозитория (`gradle jar` кладёт `build/libs/printable-sdk-1.1.0.jar`).
 
 ## Быстрый старт
 

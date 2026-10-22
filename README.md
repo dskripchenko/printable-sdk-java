@@ -14,11 +14,11 @@ the secret key must never reach untrusted environments.
 
 ```kotlin
 // build.gradle.kts (after the artifact is published to Maven Central)
-implementation("io.github.dskripchenko:printable-sdk:1.0.0")
+implementation("io.github.dskripchenko:printable-sdk:1.1.0")
 ```
 
 Until then — include as a source/jar dependency from this repository
-(`gradle jar` produces `build/libs/printable-sdk-1.0.0.jar`).
+(`gradle jar` produces `build/libs/printable-sdk-1.1.0.jar`).
 
 ## Quick start
 
